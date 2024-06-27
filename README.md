@@ -53,3 +53,16 @@ streamlit run streamlit_app.py
 ```
 
 3. Confirm that your app looks good and test queries return successful responses. If so, move on to deployment!
+
+## Deploy the app
+
+1. Create and login to a [Streamlit Community Cloud](https://share.streamlit.io) account.
+2. Link your Github account in Workspace settings.
+3. On the dashboard, click "New app".
+4. Select your Github repo and branch, then enter the filename `streamlit_app.py`.
+5. [OPTIONAL] Set your preferred app URL.
+6. In "Advanced settings...":
+   - Change the Python version to match the one you tested locally
+   - Copy the contents of your `secrets.toml` file into "Secrets"
+   - Click "Save"
+7. Click "Deploy"
