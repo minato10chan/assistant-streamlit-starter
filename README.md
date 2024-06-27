@@ -35,3 +35,21 @@ In the `streamlit_app.py` file:
 - Set your preferred button label on [line 24](https://github.com/pinecone-field/assistant-streamlit-starter/blob/f5091cbe5a9bb0fc31f327cda47830824d7a168b/streamlit_app.py#L24)
 - Set your preferred success message on [line 49](https://github.com/pinecone-field/assistant-streamlit-starter/blob/f5091cbe5a9bb0fc31f327cda47830824d7a168b/streamlit_app.py#L49)
 - Set your preferred failure message on [line 53](https://github.com/pinecone-field/assistant-streamlit-starter/blob/f5091cbe5a9bb0fc31f327cda47830824d7a168b/streamlit_app.py#L53)
+
+### Run the app
+
+1. Validate that Streamlit is [installed](#install-packages) correctly by running
+
+```shell
+streamlit hello
+```
+
+You should see a welcome message and the demo should automatically open in your browser. If it doesn't open automatically, manually go to the **Local URL** listed in the terminal output.
+
+2. If the demo ran correctly, run
+
+```shell
+streamlit run streamlit_app.py
+```
+
+3. Confirm that your app looks good and test queries return successful responses. If so, move on to deployment!
