@@ -22,7 +22,8 @@ Copy `.env.template` to `.env` and `.streamlit/secrets.toml.template` to `.strea
 1. In the [console](https://app.pinecone.io/organizations/-/projects/-/assistant), accept the Terms of Service for Pinecone Assistant.
 
 2. Run all cells in the "assistant-starter" Jupyter notebook to create an assistant and upload files to it.
-   > [!Note] If you prefer to create an assistant and upload your files via the UI, skip the notebook and continue to the next section.
+   > [!Note]
+   > If you prefer to create an assistant and upload your files via the UI, skip the notebook and continue to the next section.
 
 ## Test the app locally
 
