@@ -22,4 +22,16 @@ Copy `.env.template` to `.env` and `.streamlit/secrets.toml.template` to `.strea
 1. In the [console](https://app.pinecone.io/organizations/-/projects/-/assistant), accept the Terms of Service for Pinecone Assistant.
 
 2. Run all cells in the "assistant-starter" Jupyter notebook to create an assistant and upload files to it.
-> [!Note] If you prefer to create an assistant and upload your files via the UI, skip the notebook and continue to the next section.
+   > [!Note] If you prefer to create an assistant and upload your files via the UI, skip the notebook and continue to the next section.
+
+## Test the app locally
+
+### [OPTIONAL] Configure the app
+
+In the `streamlit_app.py` file:
+
+- Set your preferred title on [line 18](https://github.com/pinecone-field/assistant-streamlit-starter/blob/f5091cbe5a9bb0fc31f327cda47830824d7a168b/streamlit_app.py#L18)
+- Set your preferred prompt on [line 21](https://github.com/pinecone-field/assistant-streamlit-starter/blob/f5091cbe5a9bb0fc31f327cda47830824d7a168b/streamlit_app.py#L21)
+- Set your preferred button label on [line 24](https://github.com/pinecone-field/assistant-streamlit-starter/blob/f5091cbe5a9bb0fc31f327cda47830824d7a168b/streamlit_app.py#L24)
+- Set your preferred success message on [line 49](https://github.com/pinecone-field/assistant-streamlit-starter/blob/f5091cbe5a9bb0fc31f327cda47830824d7a168b/streamlit_app.py#L49)
+- Set your preferred failure message on [line 53](https://github.com/pinecone-field/assistant-streamlit-starter/blob/f5091cbe5a9bb0fc31f327cda47830824d7a168b/streamlit_app.py#L53)
