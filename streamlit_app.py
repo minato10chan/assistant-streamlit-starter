@@ -1,57 +1,63 @@
 import streamlit as st
-from pinecone import Pinecone
-from pinecone_plugins.assistant.models.chat import Message
+from src.utils.text_processing import process_text_file
+from src.services.pinecone_service import PineconeService
+from src.components.file_upload import render_file_upload
+from src.components.chat import render_chat
+from src.components.settings import render_settings
+from src.config.settings import DEFAULT_SYSTEM_PROMPT, DEFAULT_RESPONSE_TEMPLATE
 
-# configure
-pinecone_api_key = st.secrets["pinecone_key"]
-assistant_name = st.secrets["assistant_name"]
+# セッション状態の初期化
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "current_page" not in st.session_state:
+    st.session_state.current_page = "chat"
+if "system_prompt" not in st.session_state:
+    st.session_state.system_prompt = DEFAULT_SYSTEM_PROMPT
+if "response_template" not in st.session_state:
+    st.session_state.response_template = DEFAULT_RESPONSE_TEMPLATE
 
-# connect to Pinecone
-pc = Pinecone(api_key=pinecone_api_key)
-pinecone_assistant = assistant = pc.assistant.Assistant(
-    assistant_name=assistant_name,
-)
+# Pineconeサービスの初期化
+pinecone_service = PineconeService()
 
+def read_file_content(file) -> str:
+    """ファイルの内容を適切なエンコーディングで読み込む"""
+    encodings = ['utf-8', 'shift-jis', 'cp932', 'euc-jp']
+    content = file.getvalue()
+    
+    for encoding in encodings:
+        try:
+            return content.decode(encoding)
+        except UnicodeDecodeError:
+            continue
+    
+    raise ValueError("ファイルのエンコーディングを特定できませんでした。UTF-8、Shift-JIS、CP932、EUC-JPのいずれかで保存されているファイルをアップロードしてください。")
 
-# streamlit app
 def main():
-    st.title("Pinecone Assistant")
+    # サイドバーにメニューを配置
+    with st.sidebar:
+        st.title("メニュー")
+        page = st.radio(
+            "機能を選択",
+            ["チャット", "ファイルアップロード", "設定"],
+            index={
+                "chat": 0,
+                "upload": 1,
+                "settings": 2
+            }[st.session_state.current_page]
+        )
+        st.session_state.current_page = {
+            "チャット": "chat",
+            "ファイルアップロード": "upload",
+            "設定": "settings"
+        }[page]
 
-    # Input for user query
-    query = st.text_input("Ask a question:")
-
-    # Button to send query
-    if st.button("Submit"):
-        if query:
-            # Send query to Pinecone index
-            answer = query_assistant(query)
-
-            # Display results
-            display_answer(answer)
-
-
-# send a query to Pinecone assistant
-def query_assistant(query):
-    try:
-        chat_context = [Message(content=query)]
-        response = assistant.chat_completions(messages=chat_context)
-        answer = response["choices"][0]["message"]["content"]
-        return answer
-
-    except Exception as e:
-        st.error(f"Error querying Pinecone assistant: {e}")
-        return None
-
-
-# display query results
-def display_answer(answer):
-    if answer:
-        st.success("Query successful!")
-
-        st.write(answer)
+    # メインコンテンツの表示
+    if st.session_state.current_page == "chat":
+        render_chat(pinecone_service)
+    elif st.session_state.current_page == "upload":
+        render_file_upload(pinecone_service)
     else:
-        st.warning("No results found.")
-
+        render_settings(pinecone_service)
 
 if __name__ == "__main__":
     main()
