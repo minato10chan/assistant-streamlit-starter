@@ -2,3 +2,4 @@ streamlit
 watchdog
 pinecone>=3.0.0
 pinecone-plugin-assistant
+openai>=1.0.0
