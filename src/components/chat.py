@@ -2,6 +2,7 @@ import streamlit as st
 import json
 from datetime import datetime
 from src.services.pinecone_service import PineconeService
+from src.services.langchain_service import LangChainService
 
 def save_chat_history(messages, filename=None):
     """チャット履歴をJSONファイルとして保存"""
@@ -30,6 +31,10 @@ def render_chat(pinecone_service: PineconeService):
     st.title("チャット")
     st.write("アップロードしたドキュメントについて質問できます。")
     
+    # LangChainサービスの初期化
+    if "langchain_service" not in st.session_state:
+        st.session_state.langchain_service = LangChainService()
+    
     # サイドバーに履歴管理機能を配置
     with st.sidebar:
         st.header("チャット履歴管理")
@@ -45,6 +50,7 @@ def render_chat(pinecone_service: PineconeService):
             try:
                 loaded_messages = load_chat_history(uploaded_file)
                 st.session_state.messages = loaded_messages
+                st.session_state.langchain_service.clear_memory()
                 st.success("履歴を読み込みました")
             except Exception as e:
                 st.error(f"履歴の読み込みに失敗しました: {str(e)}")
@@ -52,6 +58,7 @@ def render_chat(pinecone_service: PineconeService):
         # 履歴のクリア
         if st.button("履歴をクリア"):
             st.session_state.messages = []
+            st.session_state.langchain_service.clear_memory()
             st.success("履歴をクリアしました")
         
         # 履歴の表示
@@ -82,32 +89,17 @@ def render_chat(pinecone_service: PineconeService):
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        # Pineconeで検索
-        results = pinecone_service.query(prompt, top_k=st.session_state.get("top_k", 3))
-        
-        # 検索結果を基にアシスタントの応答を生成
-        context = "\n".join([match.metadata["text"] for match in results.matches])
-        response = st.session_state.response_template.format(context=context)
-        
-        # 詳細情報の作成
-        details = {
-            "検索結果数": len(results.matches),
-            "マッチしたチャンク": [
-                {
-                    "スコア": round(match.score, 4),  # 類似度スコアを小数点4桁まで表示
-                    "テキスト": match.metadata["text"][:100] + "..."  # テキストの一部を表示
-                }
-                for match in results.matches
-            ]
-        }
-        
-        # アシスタントの応答を表示
-        st.session_state.messages.append({
-            "role": "assistant",
-            "content": response,
-            "details": details
-        })
-        with st.chat_message("assistant"):
-            st.markdown(response)
-            with st.expander("詳細情報"):
-                st.json(details) 
+        # LangChainを使用して応答を生成
+        with st.spinner("応答を生成中..."):
+            response, details = st.session_state.langchain_service.get_response(prompt)
+            
+            # アシスタントの応答を表示
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": response,
+                "details": details
+            })
+            with st.chat_message("assistant"):
+                st.markdown(response)
+                with st.expander("詳細情報"):
+                    st.json(details) 
