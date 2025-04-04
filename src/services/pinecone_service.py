@@ -49,9 +49,13 @@ class PineconeService:
         try:
             # ファイル名でフィルタリングして削除
             self.index.delete(
-                filter={"filename": filename}
+                filter={"filename": filename},
+                namespace="default"  # デフォルトの名前空間を指定
             )
         except Exception as e:
+            # 名前空間が存在しない場合は無視（初回アップロード時など）
+            if "Namespace not found" in str(e):
+                return
             raise Exception(f"ファイル '{filename}' のベクトルの削除に失敗しました: {str(e)}")
 
     def upload_chunks(self, chunks: List[Dict[str, Any]], filename: str, batch_size: int = 100) -> None:
@@ -77,8 +81,8 @@ class PineconeService:
                     }
                 })
             
-            # バッチをアップロード
-            self.index.upsert(vectors=vectors)
+            # バッチをアップロード（デフォルトの名前空間を使用）
+            self.index.upsert(vectors=vectors, namespace="default")
 
     def query(self, query_text: str, top_k: int = 3) -> Any:
         """クエリに基づいて類似チャンクを検索"""
@@ -86,7 +90,8 @@ class PineconeService:
         results = self.index.query(
             vector=query_vector,
             top_k=top_k,
-            include_metadata=True
+            include_metadata=True,
+            namespace="default"  # デフォルトの名前空間を指定
         )
         return results
 
@@ -106,6 +111,6 @@ class PineconeService:
     def clear_index(self) -> None:
         """インデックスをクリア"""
         try:
-            self.index.delete(delete_all=True)
+            self.index.delete(delete_all=True, namespace="default")
         except Exception as e:
             raise Exception(f"インデックスのクリアに失敗しました: {str(e)}") 
