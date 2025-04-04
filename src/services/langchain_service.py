@@ -84,22 +84,24 @@ class LangChainService:
     def get_relevant_context(
         self,
         query: str,
-        top_k: int = 3,
+        top_k: int = 5,
         min_similarity: Optional[float] = None
     ) -> Tuple[str, List[Dict[str, Any]]]:
         """クエリに関連する文脈を取得"""
         try:
             # 類似度閾値の設定
-            threshold = min_similarity or self.similarity_threshold
+            threshold = min_similarity or 0.5
             
             # ベクトル検索の実行
             docs = self.vectorstore.similarity_search_with_score(query, k=top_k)
             
             # デバッグ情報をログに出力
             self.logger.debug(f"Query: {query}")
+            self.logger.debug(f"Similarity threshold: {threshold}")
             self.logger.debug(f"Raw search results: {len(docs)} documents found")
             for doc, score in docs:
-                self.logger.debug(f"Score: {score}, Content preview: {doc.page_content[:100]}...")
+                self.logger.debug(f"Score: {score}, Content preview: {doc.page_content[:200]}...")
+                self.logger.debug(f"Metadata: {doc.metadata}")
             
             # 検索結果の処理
             valid_docs = []
