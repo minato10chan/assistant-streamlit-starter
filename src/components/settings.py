@@ -39,20 +39,6 @@ def render_settings(pinecone_service: PineconeService):
         help="検索時に返す結果の数"
     )
 
-    # プロンプト設定
-    st.header("プロンプト設定")
-    system_prompt = st.text_area(
-        "システムプロンプト",
-        value=st.session_state.get("system_prompt", "あなたは親切なアシスタントです。質問に対して、提供された文脈に基づいて回答してください。"),
-        help="アシスタントの基本的な振る舞いを定義するプロンプト"
-    )
-    
-    response_template = st.text_area(
-        "応答テンプレート",
-        value=st.session_state.get("response_template", "検索結果に基づいて回答します：\n\n{context}"),
-        help="検索結果を表示する際のテンプレート。{context}は検索結果に置換されます。"
-    )
-
     # データベース設定
     st.header("データベース設定")
     if st.button("データベースの状態を確認"):
@@ -75,8 +61,6 @@ def render_settings(pinecone_service: PineconeService):
         st.session_state.update({
             "chunk_size": chunk_size,
             "batch_size": batch_size,
-            "top_k": top_k,
-            "system_prompt": system_prompt,
-            "response_template": response_template
+            "top_k": top_k
         })
         st.success("設定を保存しました。") 
