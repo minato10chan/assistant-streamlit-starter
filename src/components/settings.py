@@ -48,14 +48,6 @@ def render_settings(pinecone_service: PineconeService):
         except Exception as e:
             st.error(f"データベースの状態取得に失敗しました: {str(e)}")
 
-    if st.button("データベースをクリア"):
-        if st.warning("本当にデータベースをクリアしますか？この操作は取り消せません。"):
-            try:
-                pinecone_service.clear_index()
-                st.success("データベースをクリアしました。")
-            except Exception as e:
-                st.error(f"データベースのクリアに失敗しました: {str(e)}")
-
     # 設定の保存
     if st.button("設定を保存"):
         st.session_state.update({
