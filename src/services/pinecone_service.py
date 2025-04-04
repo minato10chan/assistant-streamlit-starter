@@ -121,7 +121,7 @@ class PineconeService:
             return {
                 "total_vector_count": stats.total_vector_count,
                 "dimension": stats.dimension,
-                "index_name": stats.name,
+                "index_name": PINECONE_INDEX_NAME,  # 設定からインデックス名を取得
                 "metric": stats.metric
             }
         except Exception as e:
