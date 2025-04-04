@@ -39,18 +39,30 @@ class LangChainService:
         # チャット履歴の初期化
         self.message_history = ChatMessageHistory()
         
+        # デフォルトのシステムプロンプト
+        self.system_prompt = """あなたは文脈に基づいて質問に答えるアシスタントです。
+        以下の文脈から関連する情報を探し、それに基づいて回答してください。
+        文脈に含まれていない情報については、推測せずに「その情報は提供された文脈に含まれていません」と回答してください。"""
+        
         # プロンプトテンプレートの設定
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", """あなたは文脈に基づいて質問に答えるアシスタントです。
-            以下の文脈から関連する情報を探し、それに基づいて回答してください。
-            文脈に含まれていない情報については、推測せずに「その情報は提供された文脈に含まれていません」と回答してください。"""),
+        self._update_prompt_template()
+
+    def _update_prompt_template(self):
+        """プロンプトテンプレートを更新"""
+        self.prompt = ChatPromptTemplate.from_messages([
+            ("system", self.system_prompt),
             MessagesPlaceholder(variable_name="chat_history"),
             ("system", "参照文脈:\n{context}"),
             ("human", "{input}")
         ])
         
-        # チェーンの初期化
-        self.chain = prompt | self.llm
+        # チェーンの更新
+        self.chain = self.prompt | self.llm
+
+    def set_system_prompt(self, prompt: str) -> None:
+        """システムプロンプトを設定"""
+        self.system_prompt = prompt
+        self._update_prompt_template()
 
     def get_relevant_context(self, query: str, top_k: int = 3) -> Tuple[str, List[Dict[str, Any]]]:
         """クエリに関連する文脈を取得"""
