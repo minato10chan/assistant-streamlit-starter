@@ -25,6 +25,17 @@ class SearchResult:
 class LangChainService:
     def __init__(self):
         """LangChainサービスの初期化"""
+        # ロガーの設定
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
+        
+        # コンソールハンドラの設定
+        handler = logging.StreamHandler()
+        handler.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        self.logger.addHandler(handler)
+        
         # チャットモデルの初期化
         self.llm = ChatOpenAI(
             api_key=OPENAI_API_KEY,
@@ -60,9 +71,6 @@ class LangChainService:
         
         # 類似度スコアの閾値を設定
         self.similarity_threshold = 0.7
-        
-        # ロガーの設定
-        self.logger = logging.getLogger(__name__)
 
     def _update_prompt_template(self):
         """プロンプトテンプレートを更新"""
@@ -92,16 +100,22 @@ class LangChainService:
             # 類似度閾値の設定
             threshold = min_similarity or 0.5
             
+            # デバッグ情報をログに出力
+            self.logger.info(f"=== 検索開始 ===")
+            self.logger.info(f"検索クエリ: {query}")
+            self.logger.info(f"類似度閾値: {threshold}")
+            self.logger.info(f"取得件数: {top_k}")
+            
             # ベクトル検索の実行
             docs = self.vectorstore.similarity_search_with_score(query, k=top_k)
             
-            # デバッグ情報をログに出力
-            self.logger.debug(f"Query: {query}")
-            self.logger.debug(f"Similarity threshold: {threshold}")
-            self.logger.debug(f"Raw search results: {len(docs)} documents found")
-            for doc, score in docs:
-                self.logger.debug(f"Score: {score}, Content preview: {doc.page_content[:200]}...")
-                self.logger.debug(f"Metadata: {doc.metadata}")
+            # 検索結果の詳細をログに出力
+            self.logger.info(f"検索結果数: {len(docs)}")
+            for i, (doc, score) in enumerate(docs, 1):
+                self.logger.info(f"結果 {i}:")
+                self.logger.info(f"  スコア: {score}")
+                self.logger.info(f"  メタデータ: {doc.metadata}")
+                self.logger.info(f"  内容: {doc.page_content[:200]}...")
             
             # 検索結果の処理
             valid_docs = []
@@ -115,7 +129,7 @@ class LangChainService:
             
             # 検索結果が空の場合の処理
             if not valid_docs:
-                self.logger.warning(f"No relevant documents found for query: {query}")
+                self.logger.warning(f"閾値({threshold})以上の検索結果が見つかりませんでした")
                 return "", []
             
             # コンテキストの構築
@@ -146,10 +160,13 @@ class LangChainService:
             # 最終的なコンテキストを作成
             context_text = "\n---\n".join(context_parts)
             
+            self.logger.info(f"=== 検索完了 ===")
+            self.logger.info(f"有効な検索結果数: {len(valid_docs)}")
+            
             return context_text, search_details
             
         except Exception as e:
-            self.logger.error(f"Error during vector search: {str(e)}")
+            self.logger.error(f"検索中にエラーが発生しました: {str(e)}")
             raise RuntimeError(f"文脈の検索中にエラーが発生しました: {str(e)}")
 
     def _format_preview(self, text: str, max_length: int = 100) -> str:
