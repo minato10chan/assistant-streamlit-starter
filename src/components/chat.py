@@ -3,14 +3,24 @@ import json
 from datetime import datetime
 from src.services.pinecone_service import PineconeService
 from src.services.langchain_service import LangChainService
+from src.components.prompts import load_prompts
 
-def get_chat_history_json(messages):
-    """チャット履歴をJSON形式の文字列として取得"""
+def save_chat_history(messages, filename=None):
+    """チャット履歴をJSONファイルとして保存"""
+    if filename is None:
+        filename = f"chat_history_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    
+    # メッセージを保存可能な形式に変換
     save_data = {
         "timestamp": datetime.now().isoformat(),
         "messages": messages
     }
-    return json.dumps(save_data, ensure_ascii=False, indent=2)
+    
+    # JSONファイルとして保存
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(save_data, f, ensure_ascii=False, indent=2)
+    
+    return filename
 
 def load_chat_history(file):
     """チャット履歴をJSONファイルから読み込み"""
@@ -26,13 +36,24 @@ def render_chat(pinecone_service: PineconeService):
     if "langchain_service" not in st.session_state:
         st.session_state.langchain_service = LangChainService()
     
+    # プロンプトの選択
+    prompts = load_prompts()
+    selected_prompt = st.selectbox(
+        "使用するプロンプトを選択",
+        options=list(prompts.keys()),
+        index=0
+    )
+    
+    # 選択されたプロンプトを設定
+    st.session_state.langchain_service.set_system_prompt(prompts[selected_prompt])
+    
     # サイドバーに履歴管理機能を配置
     with st.sidebar:
         st.header("チャット履歴管理")
         
         # 履歴のダウンロード
         if st.session_state.messages:
-            json_data = get_chat_history_json(st.session_state.messages)
+            json_data = json.dumps(st.session_state.messages, ensure_ascii=False, indent=2)
             filename = f"chat_history_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
             st.download_button(
                 label="履歴をダウンロード",

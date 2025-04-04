@@ -4,6 +4,7 @@ from src.services.pinecone_service import PineconeService
 from src.components.file_upload import render_file_upload
 from src.components.chat import render_chat
 from src.components.settings import render_settings
+from src.components.prompts import render_prompt_management
 from src.config.settings import DEFAULT_SYSTEM_PROMPT, DEFAULT_RESPONSE_TEMPLATE
 
 # セッション状態の初期化
@@ -38,16 +39,18 @@ def main():
         st.title("メニュー")
         page = st.radio(
             "機能を選択",
-            ["チャット", "ファイルアップロード", "設定"],
+            ["チャット", "ファイルアップロード", "プロンプト管理", "設定"],
             index={
                 "chat": 0,
                 "upload": 1,
-                "settings": 2
+                "prompts": 2,
+                "settings": 3
             }[st.session_state.current_page]
         )
         st.session_state.current_page = {
             "チャット": "chat",
             "ファイルアップロード": "upload",
+            "プロンプト管理": "prompts",
             "設定": "settings"
         }[page]
 
@@ -56,6 +59,8 @@ def main():
         render_chat(pinecone_service)
     elif st.session_state.current_page == "upload":
         render_file_upload(pinecone_service)
+    elif st.session_state.current_page == "prompts":
+        render_prompt_management()
     else:
         render_settings(pinecone_service)
 

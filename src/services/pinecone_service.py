@@ -125,11 +125,4 @@ class PineconeService:
                 "metric": stats.metric
             }
         except Exception as e:
-            raise Exception(f"インデックスの統計情報の取得に失敗しました: {str(e)}")
-
-    def clear_index(self) -> None:
-        """インデックスをクリア"""
-        try:
-            self.index.delete(delete_all=True, namespace="default")
-        except Exception as e:
-            raise Exception(f"インデックスのクリアに失敗しました: {str(e)}") 
+            raise Exception(f"インデックスの統計情報の取得に失敗しました: {str(e)}") 
