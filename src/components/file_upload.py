@@ -23,6 +23,9 @@ def render_file_upload(pinecone_service: PineconeService):
     uploaded_file = st.file_uploader("テキストファイルをアップロード", type=['txt'])
     
     if uploaded_file is not None:
+        # ファイル名を表示
+        st.write(f"ファイル名: {uploaded_file.name}")
+        
         if st.button("データベースに保存"):
             try:
                 with st.spinner("ファイルを処理中..."):
@@ -31,7 +34,8 @@ def render_file_upload(pinecone_service: PineconeService):
                     st.write(f"ファイルを{len(chunks)}個のチャンクに分割しました")
                     
                     with st.spinner("Pineconeにアップロード中..."):
-                        pinecone_service.upload_chunks(chunks)
+                        # ファイル名を渡してアップロード
+                        pinecone_service.upload_chunks(chunks, uploaded_file.name)
                         st.success("アップロードが完了しました！")
             except ValueError as e:
                 st.error(str(e))

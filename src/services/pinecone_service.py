@@ -44,8 +44,21 @@ class PineconeService:
         )
         return response.data[0].embedding
 
-    def upload_chunks(self, chunks: List[Dict[str, Any]], batch_size: int = 100) -> None:
+    def delete_vectors_by_filename(self, filename: str) -> None:
+        """指定されたファイル名に関連するベクトルを削除"""
+        try:
+            # ファイル名でフィルタリングして削除
+            self.index.delete(
+                filter={"filename": filename}
+            )
+        except Exception as e:
+            raise Exception(f"ファイル '{filename}' のベクトルの削除に失敗しました: {str(e)}")
+
+    def upload_chunks(self, chunks: List[Dict[str, Any]], filename: str, batch_size: int = 100) -> None:
         """チャンクをPineconeにアップロード"""
+        # 同じファイル名の既存のベクトルを削除
+        self.delete_vectors_by_filename(filename)
+        
         # チャンクをバッチに分割
         for i in range(0, len(chunks), batch_size):
             batch = chunks[i:i + batch_size]
@@ -55,10 +68,12 @@ class PineconeService:
             for chunk in batch:
                 vector = self.get_embedding(chunk["text"])
                 vectors.append({
-                    "id": chunk["id"],
+                    "id": f"{filename}_{chunk['id']}",  # ファイル名を含む一意のID
                     "values": vector,
                     "metadata": {
-                        "text": chunk["text"]
+                        "text": chunk["text"],
+                        "filename": filename,
+                        "chunk_id": chunk["id"]
                     }
                 })
             
