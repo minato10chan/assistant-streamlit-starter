@@ -44,18 +44,37 @@ class PineconeService:
         )
         return response.data[0].embedding
 
+    def get_vectors_by_filename(self, filename: str) -> List[str]:
+        """指定されたファイル名に関連するベクトルのIDを取得"""
+        try:
+            # ファイル名でフィルタリングして検索
+            results = self.index.query(
+                vector=[0] * 1536,  # ダミーのベクトル
+                top_k=10000,  # 十分に大きな数
+                include_metadata=True,
+                filter={"filename": filename},
+                namespace="default"
+            )
+            # マッチしたベクトルのIDを返す
+            return [match.id for match in results.matches]
+        except Exception as e:
+            if "Namespace not found" in str(e):
+                return []
+            raise Exception(f"ファイル '{filename}' のベクトルの検索に失敗しました: {str(e)}")
+
     def delete_vectors_by_filename(self, filename: str) -> None:
         """指定されたファイル名に関連するベクトルを削除"""
         try:
-            # ファイル名でフィルタリングして削除
-            self.index.delete(
-                filter={"filename": filename},
-                namespace="default"  # デフォルトの名前空間を指定
-            )
+            # まず、ファイル名に関連するベクトルのIDを取得
+            vector_ids = self.get_vectors_by_filename(filename)
+            
+            if vector_ids:
+                # IDリストを1000個ずつのバッチに分割（Pineconeの制限）
+                for i in range(0, len(vector_ids), 1000):
+                    batch_ids = vector_ids[i:i + 1000]
+                    # バッチごとに削除
+                    self.index.delete(ids=batch_ids, namespace="default")
         except Exception as e:
-            # 名前空間が存在しない場合は無視（初回アップロード時など）
-            if "Namespace not found" in str(e):
-                return
             raise Exception(f"ファイル '{filename}' のベクトルの削除に失敗しました: {str(e)}")
 
     def upload_chunks(self, chunks: List[Dict[str, Any]], filename: str, batch_size: int = 100) -> None:
