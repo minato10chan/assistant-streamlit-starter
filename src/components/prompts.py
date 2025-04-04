@@ -51,32 +51,4 @@ def render_prompt_management():
                         save_prompts(prompts)
                         st.success("プロンプトを削除しました")
                     else:
-                        st.error("デフォルトプロンプトは削除できません")
-    
-    # プロンプトのエクスポート
-    st.header("プロンプトのエクスポート/インポート")
-    col1, col2 = st.columns([1, 1])
-    with col1:
-        # エクスポート
-        json_data = json.dumps(prompts, ensure_ascii=False, indent=2)
-        st.download_button(
-            label="プロンプトをエクスポート",
-            data=json_data,
-            file_name="prompts.json",
-            mime="application/json"
-        )
-    with col2:
-        # インポート
-        uploaded_file = st.file_uploader("プロンプトをインポート", type=['json'])
-        if uploaded_file is not None:
-            try:
-                imported_prompts = json.load(uploaded_file)
-                # デフォルトプロンプトは保持
-                default_prompt = prompts.get("default", "")
-                prompts.update(imported_prompts)
-                if "default" not in prompts:
-                    prompts["default"] = default_prompt
-                save_prompts(prompts)
-                st.success("プロンプトをインポートしました")
-            except Exception as e:
-                st.error(f"プロンプトのインポートに失敗しました: {str(e)}") 
+                        st.error("デフォルトプロンプトは削除できません") 
