@@ -30,4 +30,5 @@ DEFAULT_RESPONSE_TEMPLATE = """検索結果に基づいて回答します：
 この回答は、アップロードされたドキュメントの内容に基づいています。"""
 
 # Search Settings
-DEFAULT_TOP_K = 3  # デフォルトの検索結果数 
+DEFAULT_TOP_K = 3  # デフォルトの検索結果数
+SIMILARITY_THRESHOLD = 0.5  # 類似度スコアの閾値 

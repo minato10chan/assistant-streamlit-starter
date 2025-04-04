@@ -8,7 +8,11 @@ import os
 from ..config.settings import (
     PINECONE_API_KEY,
     PINECONE_INDEX_NAME,
-    OPENAI_API_KEY
+    OPENAI_API_KEY,
+    DEFAULT_TOP_K,
+    DEFAULT_SYSTEM_PROMPT,
+    EMBEDDING_MODEL,
+    SIMILARITY_THRESHOLD
 )
 import logging
 from dataclasses import dataclass
@@ -46,7 +50,7 @@ class LangChainService:
         # 埋め込みモデルの初期化
         self.embeddings = OpenAIEmbeddings(
             api_key=OPENAI_API_KEY,
-            model="text-embedding-ada-002"
+            model=EMBEDDING_MODEL
         )
         
         # PineconeのAPIキーを環境変数に設定
@@ -61,16 +65,14 @@ class LangChainService:
         # チャット履歴の初期化
         self.message_history = ChatMessageHistory()
         
-        # デフォルトのシステムプロンプト
-        self.system_prompt = """あなたは文脈に基づいて質問に答えるアシスタントです。
-        以下の文脈から関連する情報を探し、それに基づいて回答してください。
-        文脈に含まれていない情報については、推測せずに「その情報は提供された文脈に含まれていません」と回答してください。"""
+        # デフォルトのシステムプロンプトを設定から取得
+        self.system_prompt = DEFAULT_SYSTEM_PROMPT
         
         # プロンプトテンプレートの設定
         self._update_prompt_template()
         
-        # 類似度スコアの閾値を設定
-        self.similarity_threshold = 0.7
+        # 類似度スコアの閾値を設定から取得
+        self.similarity_threshold = SIMILARITY_THRESHOLD
 
     def _update_prompt_template(self):
         """プロンプトテンプレートを更新"""
@@ -92,13 +94,13 @@ class LangChainService:
     def get_relevant_context(
         self,
         query: str,
-        top_k: int = 5,
+        top_k: int = DEFAULT_TOP_K,  # 設定ファイルのデフォルト値を使用
         min_similarity: Optional[float] = None
     ) -> Tuple[str, List[Dict[str, Any]]]:
         """クエリに関連する文脈を取得"""
         try:
-            # 類似度閾値の設定
-            threshold = min_similarity or 0.5
+            # 類似度閾値の設定（デフォルト値を使用）
+            threshold = min_similarity or self.similarity_threshold
             
             # デバッグ情報をログに出力
             self.logger.info(f"=== 検索開始 ===")
@@ -112,18 +114,22 @@ class LangChainService:
             # 検索結果の詳細をログに出力
             self.logger.info(f"検索結果数: {len(docs)}")
             for i, (doc, score) in enumerate(docs, 1):
+                # スコアを0-1の範囲に正規化
+                normalized_score = (score + 1) / 2  # Pineconeのスコアを0-1に変換
                 self.logger.info(f"結果 {i}:")
-                self.logger.info(f"  スコア: {score}")
+                self.logger.info(f"  スコア: {normalized_score:.4f} (元のスコア: {score:.4f})")
                 self.logger.info(f"  メタデータ: {doc.metadata}")
                 self.logger.info(f"  内容: {doc.page_content[:200]}...")
             
             # 検索結果の処理
             valid_docs = []
             for doc, score in docs:
-                if score >= threshold:
+                # スコアを0-1の範囲に正規化
+                normalized_score = (score + 1) / 2
+                if normalized_score >= threshold:
                     valid_docs.append(SearchResult(
                         content=doc.page_content,
-                        score=score,
+                        score=normalized_score,  # 正規化されたスコアを使用
                         metadata=doc.metadata
                     ))
             
