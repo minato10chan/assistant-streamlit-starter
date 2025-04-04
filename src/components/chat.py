@@ -4,22 +4,13 @@ from datetime import datetime
 from src.services.pinecone_service import PineconeService
 from src.services.langchain_service import LangChainService
 
-def save_chat_history(messages, filename=None):
-    """チャット履歴をJSONファイルとして保存"""
-    if filename is None:
-        filename = f"chat_history_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-    
-    # メッセージを保存可能な形式に変換
+def get_chat_history_json(messages):
+    """チャット履歴をJSON形式の文字列として取得"""
     save_data = {
         "timestamp": datetime.now().isoformat(),
         "messages": messages
     }
-    
-    # JSONファイルとして保存
-    with open(filename, "w", encoding="utf-8") as f:
-        json.dump(save_data, f, ensure_ascii=False, indent=2)
-    
-    return filename
+    return json.dumps(save_data, ensure_ascii=False, indent=2)
 
 def load_chat_history(file):
     """チャット履歴をJSONファイルから読み込み"""
@@ -39,10 +30,16 @@ def render_chat(pinecone_service: PineconeService):
     with st.sidebar:
         st.header("チャット履歴管理")
         
-        # 履歴の保存
-        if st.button("現在の履歴を保存"):
-            filename = save_chat_history(st.session_state.messages)
-            st.success(f"履歴を保存しました: {filename}")
+        # 履歴のダウンロード
+        if st.session_state.messages:
+            json_data = get_chat_history_json(st.session_state.messages)
+            filename = f"chat_history_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            st.download_button(
+                label="履歴をダウンロード",
+                data=json_data,
+                file_name=filename,
+                mime="application/json"
+            )
         
         # 履歴の読み込み
         uploaded_file = st.file_uploader("保存した履歴を読み込む", type=['json'])
