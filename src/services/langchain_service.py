@@ -95,6 +95,12 @@ class LangChainService:
             # ベクトル検索の実行
             docs = self.vectorstore.similarity_search_with_score(query, k=top_k)
             
+            # デバッグ情報をログに出力
+            self.logger.debug(f"Query: {query}")
+            self.logger.debug(f"Raw search results: {len(docs)} documents found")
+            for doc, score in docs:
+                self.logger.debug(f"Score: {score}, Content preview: {doc.page_content[:100]}...")
+            
             # 検索結果の処理
             valid_docs = []
             for doc, score in docs:
