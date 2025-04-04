@@ -1,4 +1,10 @@
 import streamlit as st
+import sys
+import os
+
+# srcディレクトリをPythonパスに追加
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from src.utils.text_processing import process_text_file
 from src.services.pinecone_service import PineconeService
 from src.components.file_upload import render_file_upload
