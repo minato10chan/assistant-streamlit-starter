@@ -1,16 +1,9 @@
 import streamlit as st
-import sys
-import os
-
-# srcディレクトリをPythonパスに追加
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from src.utils.text_processing import process_text_file
 from src.services.pinecone_service import PineconeService
 from src.components.file_upload import render_file_upload
 from src.components.chat import render_chat
 from src.components.settings import render_settings
-from src.components.prompts import render_prompt_management
 from src.config.settings import DEFAULT_SYSTEM_PROMPT, DEFAULT_RESPONSE_TEMPLATE
 
 # セッション状態の初期化
@@ -24,7 +17,17 @@ if "response_template" not in st.session_state:
     st.session_state.response_template = DEFAULT_RESPONSE_TEMPLATE
 
 # Pineconeサービスの初期化
-pinecone_service = PineconeService()
+try:
+    pinecone_service = PineconeService()
+    # インデックスの状態を確認
+    stats = pinecone_service.get_index_stats()
+    if stats['total_vector_count'] == 0:
+        st.info("データベースは空です。ファイルをアップロードしてデータを追加してください。")
+    else:
+        st.write(f"データベースの状態: {stats['total_vector_count']}件のドキュメント")
+except Exception as e:
+    st.error(f"Pineconeサービスの初期化に失敗しました: {str(e)}")
+    st.stop()
 
 def read_file_content(file) -> str:
     """ファイルの内容を適切なエンコーディングで読み込む"""
@@ -45,18 +48,16 @@ def main():
         st.title("メニュー")
         page = st.radio(
             "機能を選択",
-            ["チャット", "ファイルアップロード", "プロンプト管理", "設定"],
+            ["チャット", "ファイルアップロード", "設定"],
             index={
                 "chat": 0,
                 "upload": 1,
-                "prompts": 2,
-                "settings": 3
+                "settings": 2
             }[st.session_state.current_page]
         )
         st.session_state.current_page = {
             "チャット": "chat",
             "ファイルアップロード": "upload",
-            "プロンプト管理": "prompts",
             "設定": "settings"
         }[page]
 
@@ -65,8 +66,6 @@ def main():
         render_chat(pinecone_service)
     elif st.session_state.current_page == "upload":
         render_file_upload(pinecone_service)
-    elif st.session_state.current_page == "prompts":
-        render_prompt_management()
     else:
         render_settings(pinecone_service)
 

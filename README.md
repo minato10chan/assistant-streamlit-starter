@@ -2,6 +2,56 @@
 
 This is a template repository for creating a [Streamlit](https://streamlit.io/) app to interact with PDF and text files with natural language. Content is processed and queried against with [Pinecone Assistant](https://www.pinecone.io/blog/pinecone-assistant/).
 
+## ローカル環境でのセットアップ
+
+### 1. 仮想環境の作成と有効化
+
+```shell
+# Windowsの場合
+# PowerShellを開いて以下のコマンドを順番に実行
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+
+# macOS/Linuxの場合
+# ターミナルを開いて以下のコマンドを順番に実行
+python -m venv .venv
+source .venv/bin/activate
+```
+
+### 2. 必要なパッケージのインストール
+
+```shell
+# 仮想環境が有効化されていることを確認（プロンプトの先頭に(.venv)が表示されているはず）
+# 以下のコマンドを実行
+pip install -r requirements.txt
+```
+
+### 3. 環境変数の設定
+
+```shell
+# Windowsの場合
+copy .env.template .env
+
+# macOS/Linuxの場合
+cp .env.template .env
+```
+
+`.env`ファイルを開いて、以下の環境変数を設定してください：
+```
+PINECONE_API_KEY=your_api_key_here
+PINECONE_ASSISTANT_NAME=your_assistant_name_here
+```
+
+### 4. アプリケーションの実行
+
+```shell
+# 以下のコマンドを実行
+streamlit run streamlit_app.py
+```
+
+アプリケーションが起動したら、ブラウザで http://localhost:8501 にアクセスしてください。
+
 ## Configuration
 
 ### Install packages

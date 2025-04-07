@@ -1,3 +1,3 @@
 """
-Pinecone Chat Application
+Main package initialization file.
 """ 
